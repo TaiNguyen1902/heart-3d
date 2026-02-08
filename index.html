@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Heart 3D</title>
 
+  <!-- THREE -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
 
   <style>
     body {
@@ -34,8 +36,7 @@
 
 <script>
 let scene, camera, renderer, heart;
-let scale = 1;
-let grow = true;
+let t = 0;
 let started = false;
 
 function init() {
@@ -47,66 +48,74 @@ function init() {
     0.1,
     100
   );
-  camera.position.z = 3;
+  camera.position.set(0, 0.5, 3);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
-  const light = new THREE.PointLight(0xff3355, 2, 100);
-  light.position.set(2, 2, 2);
-  scene.add(light);
+  // 💡 ÁNH SÁNG MỀM – GIỐNG VIDEO
+  scene.add(new THREE.AmbientLight(0x550000, 0.6));
 
-  const ambient = new THREE.AmbientLight(0xff3355, 0.6);
-  scene.add(ambient);
+  const light1 = new THREE.PointLight(0xff3344, 2.5);
+  light1.position.set(2, 2, 2);
+  scene.add(light1);
 
-  // ❤️ HÌNH TRÁI TIM
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0);
-  shape.bezierCurveTo(0, 0, -0.5, -0.5, -1, 0);
-  shape.bezierCurveTo(-1.5, 0.8, -0.5, 1.5, 0, 2);
-  shape.bezierCurveTo(0.5, 1.5, 1.5, 0.8, 1, 0);
-  shape.bezierCurveTo(0.5, -0.5, 0, 0, 0, 0);
+  const light2 = new THREE.PointLight(0xff1122, 1.5);
+  light2.position.set(-2, -1, 1);
+  scene.add(light2);
 
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.5,
-    bevelEnabled: true,
-    bevelThickness: 0.3,
-    bevelSize: 0.3,
-    bevelSegments: 10
-  });
+  // ❤️ LOAD MODEL TRÁI TIM 3D (ONLINE)
+  const loader = new THREE.GLTFLoader();
+  loader.load(
+    "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Heart/glTF/Heart.gltf",
+    (gltf) => {
+      heart = gltf.scene;
+      heart.scale.set(1.2, 1.2, 1.2);
+      heart.rotation.x = Math.PI;
 
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xff0033,
-    emissive: 0xff0033,
-    emissiveIntensity: 0.7,
-    metalness: 0.2,
-    roughness: 0.4
-  });
+      heart.traverse((obj) => {
+        if (obj.isMesh) {
+          obj.material = new THREE.MeshStandardMaterial({
+            color: 0x8b0000,
+            emissive: 0xff0022,
+            emissiveIntensity: 0.4,
+            metalness: 0.1,
+            roughness: 0.35,
+            transparent: true,
+            opacity: 0.95
+          });
+        }
+      });
 
-  heart = new THREE.Mesh(geometry, material);
-  heart.rotation.x = Math.PI;
-  scene.add(heart);
-
-  animate();
+      scene.add(heart);
+      animate();
+    }
+  );
 }
 
 function animate() {
   requestAnimationFrame(animate);
+  if (!heart) return;
 
-  // 💓 ĐẬP CHẬM – TÌNH CẢM
-  if (grow) scale += 0.0025;
-  else scale -= 0.0025;
+  // 💓 ĐẬP NHƯ TIM THẬT (SIN WAVE)
+  t += 0.03;
+  const beat = 1 + Math.sin(t) * 0.08;
 
-  if (scale > 1.1) grow = false;
-  if (scale < 1.0) grow = true;
+  heart.scale.set(beat, beat, beat);
+  heart.rotation.y += 0.002;
 
-  heart.scale.set(scale, scale, scale);
-  heart.rotation.y += 0.003;
+  heart.traverse((obj) => {
+    if (obj.isMesh) {
+      obj.material.emissiveIntensity = 0.4 + Math.sin(t) * 0.2;
+    }
+  });
 
   renderer.render(scene, camera);
 }
 
+// 📱 CHẠM MÀN HÌNH
 const startDiv = document.getElementById("start");
 startDiv.addEventListener("touchstart", start, { once: true });
 startDiv.addEventListener("click", start, { once: true });
