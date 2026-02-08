@@ -1,132 +1,58 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Heart 3D</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Particle Heart</title>
 
-  <!-- THREE -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-    }
-    #start {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #ff4d6d;
-      font-family: Arial, sans-serif;
-      background: black;
-      z-index: 10;
-    }
-  </style>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+  }
+</style>
 </head>
 
 <body>
-
-<div id="start">❤️ Chạm để bắt đầu</div>
-
 <script>
-let scene, camera, renderer, heart;
-let t = 0;
-let started = false;
+/* ===== SCENE ===== */
+const scene = new THREE.Scene();
 
-function init() {
-  scene = new THREE.Scene();
+/* ===== CAMERA ===== */
+const camera = new THREE.PerspectiveCamera(
+  60,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  100
+);
+camera.position.z = 25;
 
-  camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    100
-  );
-  camera.position.set(0, 0.5, 3);
+/* ===== RENDERER ===== */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  document.body.appendChild(renderer.domElement);
+/* ===== LIGHT ===== */
+scene.add(new THREE.AmbientLight(0x88ccff, 1));
 
-  // 💡 ÁNH SÁNG MỀM – GIỐNG VIDEO
-  scene.add(new THREE.AmbientLight(0x550000, 0.6));
+/* ===== HEART PARTICLES ===== */
+const particles = 6000;
+const geometry = new THREE.BufferGeometry();
+const positions = [];
 
-  const light1 = new THREE.PointLight(0xff3344, 2.5);
-  light1.position.set(2, 2, 2);
-  scene.add(light1);
+for (let i = 0; i < particles; i++) {
+  const t = Math.random() * Math.PI * 2;
+  const r = Math.random();
 
-  const light2 = new THREE.PointLight(0xff1122, 1.5);
-  light2.position.set(-2, -1, 1);
-  scene.add(light2);
+  // Công thức trái tim
+  const x = 16 * Math.pow(Math.sin(t), 3) * r;
+  const y = (13 * Math.cos(t)
+            - 5 * Math.cos(2 * t)
+            - 2 * Math.cos(3 * t)
+            - Math.cos(4 * t)) * r;
 
-  // ❤️ LOAD MODEL TRÁI TIM 3D (ONLINE)
-  const loader = new THREE.GLTFLoader();
-  loader.load(
-    "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Heart/glTF/Heart.gltf",
-    (gltf) => {
-      heart = gltf.scene;
-      heart.scale.set(1.2, 1.2, 1.2);
-      heart.rotation.x = Math.PI;
-
-      heart.traverse((obj) => {
-        if (obj.isMesh) {
-          obj.material = new THREE.MeshStandardMaterial({
-            color: 0x8b0000,
-            emissive: 0xff0022,
-            emissiveIntensity: 0.4,
-            metalness: 0.1,
-            roughness: 0.35,
-            transparent: true,
-            opacity: 0.95
-          });
-        }
-      });
-
-      scene.add(heart);
-      animate();
-    }
-  );
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  if (!heart) return;
-
-  // 💓 ĐẬP NHƯ TIM THẬT (SIN WAVE)
-  t += 0.03;
-  const beat = 1 + Math.sin(t) * 0.08;
-
-  heart.scale.set(beat, beat, beat);
-  heart.rotation.y += 0.002;
-
-  heart.traverse((obj) => {
-    if (obj.isMesh) {
-      obj.material.emissiveIntensity = 0.4 + Math.sin(t) * 0.2;
-    }
-  });
-
-  renderer.render(scene, camera);
-}
-
-// 📱 CHẠM MÀN HÌNH
-const startDiv = document.getElementById("start");
-startDiv.addEventListener("touchstart", start, { once: true });
-startDiv.addEventListener("click", start, { once: true });
-
-function start() {
-  if (started) return;
-  started = true;
-  startDiv.style.display = "none";
-  init();
-}
-</script>
-
-</body>
-</html>
+  const z = (
