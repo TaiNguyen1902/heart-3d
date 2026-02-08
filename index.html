@@ -32,8 +32,6 @@
 
 <div id="start">❤️ Chạm để bắt đầu</div>
 
-<audio id="music" src="heartbeat.mp3" loop></audio>
-
 <script>
 let scene, camera, renderer, heart;
 let scale = 1;
@@ -53,4 +51,73 @@ function init() {
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild
+  document.body.appendChild(renderer.domElement);
+
+  const light = new THREE.PointLight(0xff3355, 2, 100);
+  light.position.set(2, 2, 2);
+  scene.add(light);
+
+  const ambient = new THREE.AmbientLight(0xff3355, 0.6);
+  scene.add(ambient);
+
+  // ❤️ HÌNH TRÁI TIM
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0);
+  shape.bezierCurveTo(0, 0, -0.5, -0.5, -1, 0);
+  shape.bezierCurveTo(-1.5, 0.8, -0.5, 1.5, 0, 2);
+  shape.bezierCurveTo(0.5, 1.5, 1.5, 0.8, 1, 0);
+  shape.bezierCurveTo(0.5, -0.5, 0, 0, 0, 0);
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.5,
+    bevelEnabled: true,
+    bevelThickness: 0.3,
+    bevelSize: 0.3,
+    bevelSegments: 10
+  });
+
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xff0033,
+    emissive: 0xff0033,
+    emissiveIntensity: 0.7,
+    metalness: 0.2,
+    roughness: 0.4
+  });
+
+  heart = new THREE.Mesh(geometry, material);
+  heart.rotation.x = Math.PI;
+  scene.add(heart);
+
+  animate();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  // 💓 ĐẬP CHẬM – TÌNH CẢM
+  if (grow) scale += 0.0025;
+  else scale -= 0.0025;
+
+  if (scale > 1.1) grow = false;
+  if (scale < 1.0) grow = true;
+
+  heart.scale.set(scale, scale, scale);
+  heart.rotation.y += 0.003;
+
+  renderer.render(scene, camera);
+}
+
+const startDiv = document.getElementById("start");
+startDiv.addEventListener("touchstart", start, { once: true });
+startDiv.addEventListener("click", start, { once: true });
+
+function start() {
+  if (started) return;
+  started = true;
+  startDiv.style.display = "none";
+  init();
+}
+</script>
+
+</body>
+</html>
