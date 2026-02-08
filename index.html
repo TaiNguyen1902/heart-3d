@@ -1,143 +1,56 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Heart 3D Love</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Heart 3D</title>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 
-<style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-    touch-action: manipulation;
-  }
-
-  #start {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 22px;
-    font-family: sans-serif;
-    background: rgba(0,0,0,0.9);
-    z-index: 10;
-  }
-</style>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+    #start {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #ff4d6d;
+      font-family: Arial, sans-serif;
+      background: black;
+      z-index: 10;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="start">💓 Chạm để bắt đầu 💓</div>
+<div id="start">❤️ Chạm để bắt đầu</div>
 
-<audio id="beat" loop>
-  <source src="heartbeat.mp3" type="audio/mpeg">
-</audio>
+<audio id="music" src="heartbeat.mp3" loop></audio>
 
 <script>
-/* ========== SCENE ========= */
-const scene = new THREE.Scene();
+let scene, camera, renderer, heart;
+let scale = 1;
+let grow = true;
+let started = false;
 
-/* ========== CAMERA ========= */
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+function init() {
+  scene = new THREE.Scene();
 
-function updateCamera() {
-  camera.position.z = window.innerWidth < 768 ? 45 : 30;
-}
-updateCamera();
+  camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  );
+  camera.position.z = 3;
 
-/* ========== RENDERER ========= */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-document.body.appendChild(renderer.domElement);
-
-/* ========== LIGHT ========= */
-scene.add(new THREE.AmbientLight(0xff3366, 0.6));
-
-const light = new THREE.PointLight(0xff3366, 2);
-light.position.set(10, 10, 20);
-scene.add(light);
-
-/* ========== HEART MODEL ========= */
-let heart;
-let basePositions = [];
-
-const loader = new THREE.GLTFLoader();
-loader.load(
-  "https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Heart/glTF-Binary/Heart.glb",
-  (gltf) => {
-    heart = gltf.scene;
-    heart.scale.set(12, 12, 12);
-    heart.rotation.x = Math.PI;
-    scene.add(heart);
-
-    heart.traverse(obj => {
-      if (obj.isMesh) {
-        obj.material.color.set(0xff0033);
-        obj.material.emissive.set(0xff0044);
-        obj.material.emissiveIntensity = 0.8;
-        obj.geometry.attributes.position.array.forEach((v, i) => {
-          basePositions[i] = v;
-        });
-      }
-    });
-  }
-);
-
-/* ========== HEART BEAT ========= */
-let t = 0;
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  if (heart) {
-    t += 0.03; // chậm – tình cảm
-    heart.traverse(obj => {
-      if (obj.isMesh) {
-        const pos = obj.geometry.attributes.position;
-        for (let i = 0; i < pos.array.length; i++) {
-          const beat = 1 + 0.05 * Math.sin(t);
-          pos.array[i] = basePositions[i] * beat;
-        }
-        pos.needsUpdate = true;
-      }
-    });
-
-    heart.rotation.y += 0.002;
-  }
-
-  renderer.render(scene, camera);
-}
-animate();
-
-/* ========== AUDIO START ========= */
-const start = document.getElementById("start");
-const audio = document.getElementById("beat");
-
-start.addEventListener("click", () => {
-  audio.play();
-  start.style.display = "none";
-});
-
-/* ========== RESIZE ========= */
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  updateCamera();
-});
-</script>
-
-</body>
-</html>
+  document.body.appendChild
